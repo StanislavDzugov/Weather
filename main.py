@@ -40,6 +40,8 @@ def add_weather_prediction_to_database():
     weather = WeatherMaker(get_html(URL, HEADERS))
     weathers = weather.get_content()
     database = DatabaseConnection(DBNAME, USER, HOST1, PORT, PASSWORD, new_data=weathers)
+    if database.check_if_table_exists() is False:
+        database.create_table()
     database.insert_new_data()
 
 

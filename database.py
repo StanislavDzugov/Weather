@@ -22,12 +22,21 @@ class DatabaseConnection:
                                'date DATE)'
         self.cursor.execute(create_table_command)
 
+    def check_if_table_exists(self):
+        self.cursor.execute('SELECT exists(SELECT * from information_schema.tables where table_name=%s)', ('weather',))
+        return self.cursor.fetchone()[0]
+
     def insert_new_data(self):
-        new_dates = []
-        self.cursor.execute('SELECT date FROM weather ORDER BY date DESC LIMIT 1')
-        date = self.cursor.fetchall()
-        for day in self.new_data:
-            if not day['date'] > date[0][0]:
+        self.cursor.execute('SELECT exists(SELECT * from weather)')
+        if self.cursor.fetchone()[0] is True:
+            self.cursor.execute('SELECT date FROM weather ORDER BY date DESC LIMIT 1')
+            date = self.cursor.fetchall()
+            for day in self.new_data:
+                if not day['date'] > date[0][0]:
+                    insert_command = 'INSERT INTO weather (weather, temperature, date) VALUES (%s, %s, %s)'
+                    self.cursor.execute(insert_command, (day['weather'], day['temperature'], day['date']))
+        else:
+            for day in self.new_data:
                 insert_command = 'INSERT INTO weather (weather, temperature, date) VALUES (%s, %s, %s)'
                 self.cursor.execute(insert_command, (day['weather'], day['temperature'], day['date']))
 
